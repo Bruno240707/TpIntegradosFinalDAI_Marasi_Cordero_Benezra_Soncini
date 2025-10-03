@@ -82,14 +82,17 @@ export default function WalkScreen() {
           timestamp: loc.timestamp,
         };
         setLocation(newLocation);
-        setRoute(prev => [...prev, newLocation]);
+        setRoute(prevRoute => {
+          const updatedRoute = [...prevRoute, newLocation];
 
-        // Calculate distance
-        if (prev.length > 0) {
-          const last = prev[prev.length - 1];
-          const dist = getDistance(last.latitude, last.longitude, newLocation.latitude, newLocation.longitude);
-          setDistance(prevDist => prevDist + dist);
-        }
+          if (prevRoute.length > 0) {
+            const last = prevRoute[prevRoute.length - 1];
+            const dist = getDistance(last.latitude, last.longitude, newLocation.latitude, newLocation.longitude);
+            setDistance(prevDist => prevDist + dist);
+          }
+
+          return updatedRoute;
+        });
       }
     );
     setLocationSubscription(locSub);
