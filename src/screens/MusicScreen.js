@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
+import Layout from '../components/Layout';
 
 export default function MusicScreen() {
   return (
-    <View style={styles.container}>
+    <Layout style={styles.container}>
       <Text style={styles.title}>Música Relajante</Text>
       <Text style={styles.text}>La funcionalidad de reproducción de música ha sido removida para evitar dependencias externas.</Text>
-    </View>
+    </Layout>
   );
 }
 

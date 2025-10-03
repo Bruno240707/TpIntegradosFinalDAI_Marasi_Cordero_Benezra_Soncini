@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'react-native';
-import MapView, { Polyline, Marker } from 'react-native-maps';
+import MapView, { Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Accelerometer } from 'expo-sensors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Layout from '../components/Layout';
 
 const { width, height } = Dimensions.get('window');
 
@@ -142,7 +143,7 @@ export default function WalkScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Layout style={styles.container}>
       <View style={styles.statsContainer}>
         <Text style={styles.statText}>Tiempo: {formatTime(time)}</Text>
         <Text style={styles.statText}>Pasos: {steps}</Text>
@@ -177,7 +178,7 @@ export default function WalkScreen() {
           <Text style={styles.buttonText}>{isWalking ? 'Detener Caminata' : 'Iniciar Caminata'}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </Layout>
   );
 }
 

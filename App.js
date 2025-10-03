@@ -1,5 +1,6 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import WalkScreen from "./src/screens/WalkScreen";
@@ -11,19 +12,21 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: '#3498db',
-          tabBarInactiveTintColor: 'gray',
-        }}
-      >
-        <Tab.Screen name="Caminar" component={WalkScreen} />
-        <Tab.Screen name="Mapa" component={MapScreen} />
-        <Tab.Screen name="Notificaciones" component={NotificationScreen} />
-        <Tab.Screen name="Música" component={MusicScreen} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: '#3498db',
+            tabBarInactiveTintColor: 'gray',
+          }}
+        >
+          <Tab.Screen name="Caminar" component={WalkScreen} />
+          <Tab.Screen name="Mapa" component={MapScreen} />
+          <Tab.Screen name="Notificaciones" component={NotificationScreen} />
+          <Tab.Screen name="Música" component={MusicScreen} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

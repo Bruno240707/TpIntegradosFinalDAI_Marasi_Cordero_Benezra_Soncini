@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
+import Layout from '../components/Layout';
 
 export default function NotificationScreen() {
   return (
-    <View style={styles.container}>
+    <Layout style={styles.container}>
       <Text style={styles.title}>Notificaciones</Text>
       <Text style={styles.text}>Esta pantalla es para recordatorios de bienestar.</Text>
       <Text style={styles.text}>Funcionalidad de notificaciones removida para evitar dependencias de base de datos.</Text>
-    </View>
+    </Layout>
   );
 }
 
@@ -22,6 +23,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  text: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   notification: {
     marginTop: 20,

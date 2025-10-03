@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'rea
 import MapView, { Polyline, Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Layout from '../components/Layout';
 
 const { width, height } = Dimensions.get('window');
 
@@ -48,7 +49,7 @@ export default function MapScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Layout style={styles.container}>
       <MapView
         style={styles.map}
         region={location}
@@ -87,7 +88,7 @@ export default function MapScreen() {
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </Layout>
   );
 }
 
