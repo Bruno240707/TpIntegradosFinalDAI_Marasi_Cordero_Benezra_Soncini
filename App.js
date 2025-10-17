@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, Text } from 'react-native';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 import WalkScreen from "./src/screens/WalkScreen";
@@ -16,10 +17,17 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function TabNavigator() {
+  const { logout } = useAuth();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerRight: () => (
+          <TouchableOpacity onPress={logout} style={{ marginRight: 15 }}>
+            <Text style={{ color: '#3498db', fontSize: 16 }}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        ),
         tabBarActiveTintColor: '#3498db',
         tabBarInactiveTintColor: 'gray',
       }}
@@ -29,11 +37,11 @@ function TabNavigator() {
             <Ionicons name="walk" size={24} color={color} />
           ),
         }}/>
-      <Tab.Screen name="Mapa" component={MapScreen} options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="map" size={24} color={color} />
-          ),
-        }}/>
+          <Tab.Screen name="Caminatas" component={MapScreen} options={{
+              tabBarIcon: ({ color }) => (
+                <Ionicons name="map" size={24} color={color} />
+              ),
+            }}/>
       <Tab.Screen name="Notificaciones" component={NotificationScreen} options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="notifications" size={24} color={color} />

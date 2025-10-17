@@ -4,11 +4,13 @@ import MapView, { Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Accelerometer } from 'expo-sensors';
 import { supabase } from '../../supabase';
+import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 
 const { width, height } = Dimensions.get('window');
 
 export default function WalkScreen() {
+  const { user } = useAuth();
   const [isWalking, setIsWalking] = useState(false);
   const [location, setLocation] = useState(null);
   const [route, setRoute] = useState([]);
@@ -18,6 +20,7 @@ export default function WalkScreen() {
   const [subscription, setSubscription] = useState(null);
   const [locationSubscription, setLocationSubscription] = useState(null);
   const timerRef = useRef(null);
+  const timeRef = useRef(0);
   const accelerometerData = useRef({ x: 0, y: 0, z: 0 });
   const stepThreshold = 1.2;
 
@@ -40,12 +43,14 @@ export default function WalkScreen() {
   const startWalk = async () => {
     setIsWalking(true);
     setTime(0);
+    timeRef.current = 0;
     setSteps(0);
     setDistance(0);
     setRoute([]);
 
     timerRef.current = setInterval(() => {
-      setTime(prev => prev + 1);
+      timeRef.current += 1;
+      setTime(timeRef.current);
     }, 1000);
 
     const locSub = await Location.watchPositionAsync(
@@ -93,12 +98,11 @@ export default function WalkScreen() {
     try {
       const { error } = await supabase.from('caminatas').insert([
         {
-          pasos: steps,
+          usuario_id: user.id, // Use user.id from AuthContext
           distancia: distance,
-          tiempo: time,
-          ubicacion: route,
+          duracion: timeRef.current, // Save total seconds from ref
           fecha: new Date(),
-          // usuario_id: idDelUsuarioActual, // <- puedes agregarlo si tienes autenticación
+          Pasos: steps, // Note: Capital P as per schema
         }
       ]);
 
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   statsContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: 10, backgroundColor: '#fff' },
   statText: { fontSize: 16, fontWeight: 'bold' },
-  map: { width: width, height: height * 0.6 },
+  map: { flex: 1 },
   controlsContainer: { padding: 20, alignItems: 'center' },
   button: { padding: 15, borderRadius: 10, marginBottom: 10, width: '80%', alignItems: 'center' },
   startButton: { backgroundColor: '#4CAF50' },
