@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'rea
 import MapView, { Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Accelerometer } from 'expo-sensors';
+import { Audio } from 'expo-av';
 import { supabase } from '../../supabase';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
@@ -22,6 +23,7 @@ export default function WalkScreen() {
   const timerRef = useRef(null);
   const timeRef = useRef(0);
   const accelerometerData = useRef({ x: 0, y: 0, z: 0 });
+  const soundRef = useRef(null);
   const stepThreshold = 1.2;
 
   useEffect(() => {
@@ -47,6 +49,17 @@ export default function WalkScreen() {
     setSteps(0);
     setDistance(0);
     setRoute([]);
+
+    // Load and play the music
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../../assets/02. Mii Channel (Plaza).mp3'),
+        { shouldPlay: true, isLooping: true }
+      );
+      soundRef.current = sound;
+    } catch (error) {
+      console.error('Error loading sound:', error);
+    }
 
     timerRef.current = setInterval(() => {
       timeRef.current += 1;
@@ -93,6 +106,13 @@ export default function WalkScreen() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (subscription) subscription.remove();
     if (locationSubscription) locationSubscription.remove();
+
+    // Stop the music
+    if (soundRef.current) {
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
 
     // Guardar caminata en Supabase
     try {
