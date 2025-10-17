@@ -2,48 +2,78 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 import WalkScreen from "./src/screens/WalkScreen";
 import MapScreen from "./src/screens/MapScreen";
 import NotificationScreen from "./src/screens/NotificationScreen";
 import MusicScreen from "./src/screens/MusicScreen";
+import LoginScreen from "./src/screens/LoginScreen";
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function TabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#3498db',
+        tabBarInactiveTintColor: 'gray',
+      }}
+    >
+      <Tab.Screen name="Caminar" component={WalkScreen} options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="walk" size={24} color={color} />
+          ),
+        }}/>
+      <Tab.Screen name="Mapa" component={MapScreen} options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="map" size={24} color={color} />
+          ),
+        }}/>
+      <Tab.Screen name="Notificaciones" component={NotificationScreen} options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="notifications" size={24} color={color} />
+          ),
+        }}/>
+      <Tab.Screen name="Música" component={MusicScreen} options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="musical-notes" size={24} color={color} />
+          ),
+        }}/>
+    </Tab.Navigator>
+  );
+}
+
+function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null; // Or a loading screen
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="Main" component={TabNavigator} />
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarActiveTintColor: '#3498db',
-            tabBarInactiveTintColor: 'gray',
-          }}
-        >
-          <Tab.Screen name="Caminar" component={WalkScreen} options={{
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="walk" size={24} color={color} />
-              ),
-            }}/>
-          <Tab.Screen name="Mapa" component={MapScreen} options={{
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="map" size={24} color={color} />
-              ),
-            }}/>
-          <Tab.Screen name="Notificaciones" component={NotificationScreen} options={{
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="notifications" size={24} color={color} />
-              ),
-            }}/>
-          <Tab.Screen name="Música" component={MusicScreen} options={{
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="musical-notes" size={24} color={color} />
-              ),
-            }}/>
-        </Tab.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

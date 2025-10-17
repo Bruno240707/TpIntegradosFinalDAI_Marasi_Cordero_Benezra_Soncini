@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, Dimensions } from 'rea
 import MapView, { Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Accelerometer } from 'expo-sensors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../../supabase';
 import Layout from '../components/Layout';
 
 const { width, height } = Dimensions.get('window');
@@ -19,11 +19,10 @@ export default function WalkScreen() {
   const [locationSubscription, setLocationSubscription] = useState(null);
   const timerRef = useRef(null);
   const accelerometerData = useRef({ x: 0, y: 0, z: 0 });
-  const stepThreshold = 1.2; // Adjust based on testing
+  const stepThreshold = 1.2;
 
   useEffect(() => {
     requestPermissions();
-    loadWalkData();
     return () => {
       if (subscription) subscription.remove();
       if (locationSubscription) locationSubscription.remove();
@@ -38,28 +37,6 @@ export default function WalkScreen() {
     }
   };
 
-  const loadWalkData = async () => {
-    try {
-      const data = await AsyncStorage.getItem('walkData');
-      if (data) {
-        const parsed = JSON.parse(data);
-        setSteps(parsed.steps || 0);
-        setDistance(parsed.distance || 0);
-      }
-    } catch (error) {
-      console.error('Error loading walk data:', error);
-    }
-  };
-
-  const saveWalkData = async () => {
-    try {
-      const data = { steps, distance, time, route };
-      await AsyncStorage.setItem('walkData', JSON.stringify(data));
-    } catch (error) {
-      console.error('Error saving walk data:', error);
-    }
-  };
-
   const startWalk = async () => {
     setIsWalking(true);
     setTime(0);
@@ -67,12 +44,10 @@ export default function WalkScreen() {
     setDistance(0);
     setRoute([]);
 
-    // Start timer
     timerRef.current = setInterval(() => {
       setTime(prev => prev + 1);
     }, 1000);
 
-    // Start location tracking
     const locSub = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 10 },
       (loc) => {
@@ -84,30 +59,25 @@ export default function WalkScreen() {
         setLocation(newLocation);
         setRoute(prevRoute => {
           const updatedRoute = [...prevRoute, newLocation];
-
           if (prevRoute.length > 0) {
             const last = prevRoute[prevRoute.length - 1];
             const dist = getDistance(last.latitude, last.longitude, newLocation.latitude, newLocation.longitude);
             setDistance(prevDist => prevDist + dist);
           }
-
           return updatedRoute;
         });
       }
     );
     setLocationSubscription(locSub);
 
-    // Start accelerometer for steps
     Accelerometer.setUpdateInterval(100);
     const accelSub = Accelerometer.addListener((data) => {
       const { x, y, z } = data;
       const magnitude = Math.sqrt(x * x + y * y + z * z);
       const prevMagnitude = Math.sqrt(accelerometerData.current.x ** 2 + accelerometerData.current.y ** 2 + accelerometerData.current.z ** 2);
-
       if (prevMagnitude > stepThreshold && magnitude < stepThreshold) {
         setSteps(prev => prev + 1);
       }
-
       accelerometerData.current = { x, y, z };
     });
     setSubscription(accelSub);
@@ -118,26 +88,45 @@ export default function WalkScreen() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (subscription) subscription.remove();
     if (locationSubscription) locationSubscription.remove();
-    await saveWalkData();
+
+    // Guardar caminata en Supabase
+    try {
+      const { error } = await supabase.from('caminatas').insert([
+        {
+          pasos: steps,
+          distancia: distance,
+          tiempo: time,
+          ubicacion: route,
+          fecha: new Date(),
+          // usuario_id: idDelUsuarioActual, // <- puedes agregarlo si tienes autenticación
+        }
+      ]);
+
+      if (error) {
+        console.error('Error al guardar caminata:', error);
+        Alert.alert('Error', 'No se pudo guardar la caminata.');
+      } else {
+        Alert.alert('Caminata guardada', 'Tu caminata se registró exitosamente.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Hubo un problema al guardar en la base de datos.');
+    }
   };
 
-
-
   const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c; // Distance in km
-    return d * 1000; // Convert to meters
+    const d = R * c;
+    return d * 1000;
   };
 
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
+  const deg2rad = (deg) => deg * (Math.PI / 180);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -186,44 +175,13 @@ export default function WalkScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: '#fff',
-  },
-  statText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  map: {
-    width: width,
-    height: height * 0.6,
-  },
-  controlsContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  button: {
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  startButton: {
-    backgroundColor: '#4CAF50',
-  },
-  stopButton: {
-    backgroundColor: '#F44336',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: 10, backgroundColor: '#fff' },
+  statText: { fontSize: 16, fontWeight: 'bold' },
+  map: { width: width, height: height * 0.6 },
+  controlsContainer: { padding: 20, alignItems: 'center' },
+  button: { padding: 15, borderRadius: 10, marginBottom: 10, width: '80%', alignItems: 'center' },
+  startButton: { backgroundColor: '#4CAF50' },
+  stopButton: { backgroundColor: '#F44336' },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
