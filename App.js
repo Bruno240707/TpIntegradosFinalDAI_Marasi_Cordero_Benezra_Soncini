@@ -10,7 +10,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import WalkScreen from "./src/screens/WalkScreen";
 import MapScreen from "./src/screens/MapScreen";
 import NotificationScreen from "./src/screens/NotificationScreen";
-import MusicScreen from "./src/screens/MusicScreen";
+
 import LoginScreen from "./src/screens/LoginScreen";
 
 const Tab = createBottomTabNavigator();
@@ -45,11 +45,6 @@ function TabNavigator() {
       <Tab.Screen name="Notificaciones" component={NotificationScreen} options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="notifications" size={24} color={color} />
-          ),
-        }}/>
-      <Tab.Screen name="Música" component={MusicScreen} options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="musical-notes" size={24} color={color} />
           ),
         }}/>
     </Tab.Navigator>
