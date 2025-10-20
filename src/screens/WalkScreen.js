@@ -4,6 +4,7 @@ import MapView, { Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Accelerometer } from 'expo-sensors';
 import { Audio } from 'expo-av';
+import * as Notifications from 'expo-notifications';
 import { supabase } from '../../supabase';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
@@ -28,6 +29,16 @@ export default function WalkScreen() {
 
   useEffect(() => {
     requestPermissions();
+
+    // Set up notification handler to show notifications in foreground
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+
     return () => {
       if (subscription) subscription.remove();
       if (locationSubscription) locationSubscription.remove();
@@ -39,6 +50,11 @@ export default function WalkScreen() {
     const locationPermission = await Location.requestForegroundPermissionsAsync();
     if (!locationPermission.granted) {
       Alert.alert('Permiso denegado', 'Se necesita acceso a la ubicación para rastrear la caminata.');
+    }
+
+    const notificationPermission = await Notifications.requestPermissionsAsync();
+    if (!notificationPermission.granted) {
+      Alert.alert('Permiso denegado', 'Se necesita acceso a notificaciones para recordatorios.');
     }
   };
 
@@ -64,6 +80,17 @@ export default function WalkScreen() {
     timerRef.current = setInterval(() => {
       timeRef.current += 1;
       setTime(timeRef.current);
+
+      // Schedule notification at 15 seconds
+      if (timeRef.current === 15) {
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: '¡Vas bien!',
+            body: 'Recuerda tomar agua',
+          },
+          trigger: null, // Immediate
+        });
+      }
     }, 1000);
 
     const locSub = await Location.watchPositionAsync(

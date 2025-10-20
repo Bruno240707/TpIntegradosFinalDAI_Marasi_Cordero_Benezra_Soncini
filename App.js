@@ -9,7 +9,6 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 import WalkScreen from "./src/screens/WalkScreen";
 import MapScreen from "./src/screens/MapScreen";
-import NotificationScreen from "./src/screens/NotificationScreen";
 
 import LoginScreen from "./src/screens/LoginScreen";
 
@@ -42,11 +41,7 @@ function TabNavigator() {
                 <Ionicons name="map" size={24} color={color} />
               ),
             }}/>
-      <Tab.Screen name="Notificaciones" component={NotificationScreen} options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="notifications" size={24} color={color} />
-          ),
-        }}/>
+
     </Tab.Navigator>
   );
 }
