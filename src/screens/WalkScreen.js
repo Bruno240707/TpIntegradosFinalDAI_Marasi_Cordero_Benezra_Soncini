@@ -23,6 +23,7 @@ export default function WalkScreen() {
   const [locationSubscription, setLocationSubscription] = useState(null);
   const timerRef = useRef(null);
   const timeRef = useRef(0);
+  const distanceRef = useRef(0);
   const accelerometerData = useRef({ x: 0, y: 0, z: 0 });
   const soundRef = useRef(null);
   const stepThreshold = 1.2;
@@ -62,6 +63,7 @@ export default function WalkScreen() {
     setIsWalking(true);
     setTime(0);
     timeRef.current = 0;
+    distanceRef.current = 0;
     setSteps(0);
     setDistance(0);
     setRoute([]);
@@ -107,7 +109,11 @@ export default function WalkScreen() {
           if (prevRoute.length > 0) {
             const last = prevRoute[prevRoute.length - 1];
             const dist = getDistance(last.latitude, last.longitude, newLocation.latitude, newLocation.longitude);
-            setDistance(prevDist => prevDist + dist);
+            // Only add distance if it's between 5m and 100m to filter noise and GPS jumps
+            if (dist > 5 && dist < 100) {
+              distanceRef.current += dist;
+              setDistance(distanceRef.current);
+            }
           }
           return updatedRoute;
         });
